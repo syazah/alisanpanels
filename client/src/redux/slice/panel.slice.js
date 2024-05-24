@@ -14,7 +14,6 @@ const initialState = {
   panelFrame: "#E5E7EB",
   panelIcons: [],
   panelWall: "#3F3F46",
-  collectionsArray: [],
 };
 
 const panelSlice = createSlice({

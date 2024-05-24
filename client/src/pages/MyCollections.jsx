@@ -1,13 +1,17 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
-
+import HistoryPanels from "../components/HistoryPanels";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 function MyCollections() {
   const [loading, setLoading] = useState(false);
   const [collectionsArray, setCollectionsArray] = useState([]);
   const [panelsPopupOpen, setPanelsPopupOpen] = useState(false);
   const { currentUser } = useSelector((state) => state.user);
   const [panelArray, setPanelArray] = useState([]);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const panelRef = useRef([]);
 
   //fetch collections
   async function fetchUsers() {
@@ -39,7 +43,9 @@ function MyCollections() {
         body: JSON.stringify({ _id: id }),
       });
       const data = await res.json();
-      console.log(data);
+      if (res.ok) {
+        setPanelArray(data.message);
+      }
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -47,6 +53,123 @@ function MyCollections() {
     }
   }
 
+  //DOWNLOAD PDF
+  async function handleDownloadPdf() {
+    try {
+      setPdfLoading(true);
+      const images = await Promise.all(
+        panelRef.current.map(async (ref) => {
+          if (ref) {
+            const canvas = await html2canvas(ref);
+            return canvas.toDataURL("image/png");
+          }
+          return null;
+        })
+      );
+
+      // Create a new jsPDF instance
+      const pdf = new jsPDF("p", "mm", "a4");
+
+      // Add each image to the PDF
+      images.forEach((image, index) => {
+        if (image) {
+          if (index > 0) {
+            pdf.addPage();
+          }
+          if (index == 0) {
+            pdf.text(`ALISAN PANELS`, 10, 10);
+            pdf.text(
+              `PANEL ID :- ${JSON.stringify(panelArray[index]._id)}`,
+              10,
+              20
+            );
+            pdf.text(
+              `Switches :- ${JSON.stringify(
+                panelArray[index].panelVariant[0]
+              )}`,
+              10,
+              25
+            );
+            pdf.text(
+              `Bells :- ${JSON.stringify(panelArray[index].panelVariant[0])}`,
+              10,
+              30
+            );
+            pdf.text(
+              `Curtains :- ${JSON.stringify(
+                panelArray[index].panelVariant[0]
+              )}`,
+              10,
+              35
+            );
+            pdf.text(
+              `Fans :- ${JSON.stringify(panelArray[index].panelVariant[0])}`,
+              10,
+              40
+            );
+            pdf.text(
+              `Plugs :- ${JSON.stringify(panelArray[index].panelVariant[0])}`,
+              10,
+              45
+            );
+            pdf.text(
+              `Dimmers :- ${JSON.stringify(panelArray[index].panelVariant[0])}`,
+              10,
+              50
+            );
+          } else {
+            pdf.text(`Panel ${index + 1}`, 10, 10);
+            pdf.text(
+              `PANEL ID :- ${JSON.stringify(panelArray[index]._id)}`,
+              10,
+              20
+            );
+            pdf.text(
+              `Switches :- ${JSON.stringify(
+                panelArray[index].panelVariant[0]
+              )}`,
+              10,
+              25
+            );
+            pdf.text(
+              `Bells :- ${JSON.stringify(panelArray[index].panelVariant[0])}`,
+              10,
+              30
+            );
+            pdf.text(
+              `Curtains :- ${JSON.stringify(
+                panelArray[index].panelVariant[0]
+              )}`,
+              10,
+              35
+            );
+            pdf.text(
+              `Fans :- ${JSON.stringify(panelArray[index].panelVariant[0])}`,
+              10,
+              40
+            );
+            pdf.text(
+              `Plugs :- ${JSON.stringify(panelArray[index].panelVariant[0])}`,
+              10,
+              45
+            );
+            pdf.text(
+              `Dimmers :- ${JSON.stringify(panelArray[index].panelVariant[0])}`,
+              10,
+              50
+            );
+          }
+          pdf.addImage(image, "PNG", 40, 70, 120, 0); // Adjust dimensions as needed
+        }
+      });
+      // Save the PDF
+      pdf.save("panels.pdf");
+      setPdfLoading(false);
+    } catch (error) {
+      console.log(error);
+      setPdfLoading(false);
+    }
+  }
   //   EFFECT
   useEffect(() => {
     fetchUsers();
@@ -59,85 +182,128 @@ function MyCollections() {
           My Collections
         </h1>
       </div>
-      <div className="flex w-full h-full">
-        {loading ? (
-          <div className="flex w-full h-full justify-center items-center">
-            <img src={"/loading.gif"} />
-          </div>
-        ) : (
-          // MAIN COLLECTION ARRAY
+      {collectionsArray.length === 0 ? (
+        <div className="w-full h-full flex justify-center items-center flex-col">
+          <h1 className="font-bold text-2xl text-red-600 border-b-2 border-red-600">
+            No Collection Found
+          </h1>
+          <p className="text-lg font-medium text-white">
+            Add a new collection by visiting the home page.{" "}
+          </p>
+        </div>
+      ) : (
+        <div className="flex w-full h-full">
+          {loading ? (
+            <div className="flex w-full h-full justify-center items-center">
+              <img src={"/loading.gif"} />
+            </div>
+          ) : (
+            // MAIN COLLECTION ARRAY
 
-          <div className="relative flex w-full h-full justify-start items-start">
-            {/* COLLECTION  */}
-            {collectionsArray.map((collection, index) => {
-              return (
-                <div
-                  className="flex p-4 flex-col justify-center items-center cursor-pointer"
-                  key={index}
-                  onClick={() => {
-                    setPanelsPopupOpen(true);
-                    handleFetchCollection(collection._id);
-                  }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke=""
-                    className="size-20 stroke-white bg-red-600 p-4 rounded-full hover:bg-zinc-800 hover:stroke-red-600 transition-all duration-200"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776"
-                    />
-                  </svg>
-
-                  <h1 className="text-white font-semibold text-xl capitalize">
-                    {collection.name.split("/").pop()}
-                  </h1>
-                </div>
-              );
-            })}
-
-            {/* PANEL  */}
-            {panelsPopupOpen && (
-              <div className="w-full h-full absolute top-0 left-0 flex justify-center items-center">
-                {loading ? (
-                  <div className="flex w-full h-full justify-center items-center">
-                    <img src={"/loading.gif"} />
-                  </div>
-                ) : (
+            <div className="relative flex w-full h-full justify-start items-start ">
+              {/* COLLECTION  */}
+              {collectionsArray.map((collection, index) => {
+                return (
                   <div
-                    className="w-[80%] h-[80vh] bg-zinc-900 border-[1px] border-red-600 rounded-2xl"
-                    onClick={() => setPanelsPopupOpen(false)}
+                    className="flex p-4 flex-col justify-center items-center cursor-pointer "
+                    key={index}
+                    onClick={() => {
+                      setPanelsPopupOpen(true);
+                      handleFetchCollection(collection._id);
+                    }}
                   >
-                    <div className="flex p-4 justify-end cursor-pointer">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke=""
-                        className="size-10 stroke-red-600 hover:stroke-white"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                        />
-                      </svg>
-                    </div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke=""
+                      className="size-20 stroke-white bg-red-600 p-4 rounded-full hover:bg-zinc-800 hover:stroke-red-600 transition-all duration-200"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776"
+                      />
+                    </svg>
 
-                    <div className="grid grid-rows-4 grid-cols-4"></div>
+                    <h1 className="text-white font-semibold text-xl capitalize">
+                      {collection.name.split("/").pop()}
+                    </h1>
                   </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+                );
+              })}
+
+              {/* PANEL  */}
+              {panelsPopupOpen && (
+                <div className="w-full h-full absolute top-0 left-0 flex justify-center items-center ">
+                  {loading ? (
+                    <div className="flex w-full h-full justify-center items-center">
+                      <img src={"/loading.gif"} />
+                    </div>
+                  ) : (
+                    <div className="w-[80%] h-[80vh] bg-zinc-900 border-[1px] border-red-600 rounded-2xl overflow-y-scroll overflow-x-hidden">
+                      <div className="flex p-4 justify-end cursor-pointer sticky top-0 gap-2">
+                        {pdfLoading ? (
+                          <div className="w-10 p-2 bg-zinc-900 rounded-full">
+                            <img src="/loading.gif" />
+                          </div>
+                        ) : (
+                          <svg
+                            onClick={handleDownloadPdf}
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke=""
+                            className="size-10 stroke-white hover:stroke-red-600 p-[4px] bg-red-600 rounded-full  hover:bg-white transition-all duration-200"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M7.5 7.5h-.75A2.25 2.25 0 0 0 4.5 9.75v7.5a2.25 2.25 0 0 0 2.25 2.25h7.5a2.25 2.25 0 0 0 2.25-2.25v-7.5a2.25 2.25 0 0 0-2.25-2.25h-.75m-6 3.75 3 3m0 0 3-3m-3 3V1.5m6 9h.75a2.25 2.25 0 0 1 2.25 2.25v7.5a2.25 2.25 0 0 1-2.25 2.25h-7.5a2.25 2.25 0 0 1-2.25-2.25v-.75"
+                            />
+                          </svg>
+                        )}
+
+                        <svg
+                          onClick={() => setPanelsPopupOpen(false)}
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.5}
+                          stroke=""
+                          className="size-10 stroke-white hover:stroke-red-600 p-[4px] bg-red-600 rounded-full  hover:bg-white transition-all duration-200"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                          />
+                        </svg>
+                      </div>
+
+                      <div className="w-full h-full grid grid-cols-4 p-4 gap-2">
+                        {panelArray.map((panel, index) => {
+                          return (
+                            <div
+                              className="grid col-span-2 "
+                              key={index}
+                              ref={(el) => (panelRef.current[index] = el)}
+                            >
+                              <HistoryPanels panel={panel} />;
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
