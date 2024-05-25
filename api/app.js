@@ -6,7 +6,8 @@ import userRouter from "./routes/user.routes.js";
 import panelRouter from "./routes/panel.routes.js";
 import cookieParser from "cookie-parser";
 import cloudinary from "cloudinary";
-
+import path from "path";
+const __dirname = path.resolve();
 //INITIAL CONFIGURATIONS
 dotenv.config();
 const app = express();
@@ -25,6 +26,10 @@ app.use("/api/v1", authRouter);
 app.use("/api/v1", userRouter);
 app.use("/api/v1", panelRouter);
 
+app.use(express.static(path.join(__dirname, "/client/dist")));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "client", "dist", "index.html"));
+});
 //ERROR HANDLE
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
