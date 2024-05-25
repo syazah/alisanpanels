@@ -1,13 +1,14 @@
 function HistoryPanels({ panel }) {
-  console.log(panel);
   //sbcfpd
   const iconsArray = [];
-  for (let i = 0; i < panel.panelIcons.length; i++) {
-    let newImg =
-      panel.panelIcons[i].draggedElement.split("/")[3] +
-      "/" +
-      panel.panelIcons[i].draggedElement.split("/")[4];
-    iconsArray.push(newImg);
+  if (panel.panelIcons.length > 0) {
+    for (let i = 0; i < panel.panelIcons.length; i++) {
+      let newImg =
+        panel.panelIcons[i]?.draggedElement.split("/")[3] +
+        "/" +
+        panel.panelIcons[i]?.draggedElement.split("/")[4];
+      iconsArray.push(newImg);
+    }
   }
   return (
     <div

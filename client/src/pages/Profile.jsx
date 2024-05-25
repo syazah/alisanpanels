@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { signInSuccess, signOutSuccess } from "../redux/slice/user.slice";
+import { Link } from "react-router-dom";
 function Profile() {
   const { currentUser } = useSelector((state) => state.user);
   const [imageFileUrl, setImageFileUrl] = useState(null);
@@ -139,13 +140,9 @@ function Profile() {
           </button>
         </div>
         {currentUser.admin && (
-          <button
-            onClick={handleSignOut}
-            to={"/"}
-            className="py-2 px-4 bg-red-600"
-          >
+          <Link to={"/admin"} className="py-2 px-4 bg-red-600">
             ADMIN PANEL
-          </button>
+          </Link>
         )}
       </form>
     </div>

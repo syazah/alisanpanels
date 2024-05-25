@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { logo } from "../Logo";
+import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
+import { signUpSuccess } from "../redux/slice/user.slice";
 
 function SignUp() {
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   //SETTING TITLE
   useEffect(() => {
@@ -29,10 +32,13 @@ function SignUp() {
         body: JSON.stringify(formData),
       });
       const data = await res.json();
-      console.log(data);
       setLoading(false);
+      if (data.success === false) {
+        alert(data.message);
+      }
       if (res.ok) {
-        return navigate("/signin");
+        dispatch(signUpSuccess(data.data));
+        return navigate("/verify-user-email");
       }
     } catch (err) {
       setLoading(false);

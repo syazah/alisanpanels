@@ -3,14 +3,14 @@ import { logo } from "../Logo.js";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 function Navbar() {
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser, signUpCred } = useSelector((state) => state.user);
   return (
     <div className="w-full z-10 p-4 flex justify-between items-center bg-zinc-800 shadow-md shadow-zinc-900">
       <div className="w-1/3">
         <img className="w-[20%] h-[20%]" src={logo} />
       </div>
 
-      {currentUser != null && (
+      {currentUser != null && signUpCred.status != 0 && (
         <Dropdown
           className="bg-zinc-800 p-4 border-2 border-red-500 flex flex-col w-[25vw] z-50"
           arrowIcon={false}

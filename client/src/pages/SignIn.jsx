@@ -13,6 +13,7 @@ function SignIn() {
   const { loading, error: errorMessage } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { signUpCred } = useSelector((state) => state.user);
   useEffect(() => {
     document.title = "SignIn | Panels";
   });
@@ -40,6 +41,9 @@ function SignIn() {
       }
       if (res.ok) {
         dispatch(signInSuccess(data));
+        if (signUpCred.status === 0) {
+          return navigate("/verify-user-email");
+        }
         return navigate("/");
       }
     } catch (err) {
@@ -58,6 +62,7 @@ function SignIn() {
           culture:
         </h3>
       </div>
+
       <form
         onSubmit={handleSubmit}
         className="w-[50%] p-10 gap-4 flex flex-col justify-center items-center text-gray-50"
@@ -83,6 +88,7 @@ function SignIn() {
             placeholder="********"
           />
         </label>
+
         <button className="bg-red-500 p-2 text-xl w-full">
           {loading ? "Loading..." : "SIGN IN"}
         </button>

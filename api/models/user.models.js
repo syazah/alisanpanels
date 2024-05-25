@@ -1,5 +1,21 @@
 import mongoose from "mongoose";
 
+const VerificationSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  otp: {
+    type: String,
+  },
+  createdAt: {
+    type: Date,
+  },
+  expiresAt: {
+    type: Date,
+  },
+});
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -33,8 +49,13 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    verified: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
 
 export const User = mongoose.model("User", userSchema);
+export const Verification = mongoose.model("Verification", VerificationSchema);
