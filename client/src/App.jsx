@@ -16,10 +16,13 @@ function App() {
       <Routes>
         <Route
           path="/"
-          element={signUpCred.status === 0 ? <VerifyOtp /> : <MainPage />}
+          element={signUpCred?.status === 0 ? <VerifyOtp /> : <MainPage />}
         />
         <Route path="/signin" element={<SignIn />} />
-        <Route path="/signup" element={<SignUp />} />
+        <Route
+          path="/signup"
+          element={currentUser?.admin === true ? <SignUp /> : <NotFound />}
+        />
         <Route path="/verify-user-email" element={<VerifyOtp />} />
         <Route element={<PrivateLink />}>
           <Route path="/profile" element={<Profile />} />

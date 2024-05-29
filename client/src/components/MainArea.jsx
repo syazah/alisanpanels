@@ -349,11 +349,16 @@ function MainArea({ droppedDetails, setDroppedDetails }) {
         {currentOpen > -1 && (
           <div
             style={{
-              width: `${panelSize >= 4 ? panelSize * 11 : panelSize * 17}%`,
+              width: `${
+                panelSize <= 4
+                  ? 2 * 100 + (panelSize / 2) * 100
+                  : 2 * 100 + (panelSize / 2) * 100
+              }px`,
+              height: `${panelSize <= 4 ? 290 : 280}px`,
               backgroundColor: panelGlass,
               borderColor: panelFrame,
             }}
-            className="relative h-[250px] border-4 bg-zinc-950 rounded-3xl  transition-all flex flex-wrap gap-4 justify-center items-center"
+            className="relative border-[3px] bg-zinc-950 rounded-lg  transition-all flex flex-wrap gap-4 justify-center items-center"
           >
             <div className=" h-full  flex flex-wrap justify-center items-center gap-4">
               {droppablesArray.map((item) => {
@@ -385,56 +390,55 @@ function MainArea({ droppedDetails, setDroppedDetails }) {
       </div>
 
       {/* DOWNLOAD PANEL  */}
-      {currentOpen >= 5 && (
-        <div className="flex flex-col">
-          <button
-            className="absolute bottom-10 cursor-pointer p-4 right-10 bg-red-600 text-white font-bold rounded-full transition-all duration-300 hover:bg-red-700"
-            onClick={handleSendData}
-          >
-            {loading ? (
-              "Downloading ... "
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-8 h-8"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15M9 12l3 3m0 0 3-3m-3 3V2.25"
-                />
-              </svg>
-            )}
-          </button>
-          <button
-            className="absolute bottom-28 cursor-pointer p-4 right-10 bg-red-600 text-white font-bold rounded-full transition-all duration-300 hover:bg-red-700"
-            onClick={() => setPopupForCollection(true)}
-          >
-            {loading ? (
-              "Adding ... "
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-8 h-8"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 10.5v6m3-3H9m4.06-7.19-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"
-                />
-              </svg>
-            )}
-          </button>
-        </div>
-      )}
+
+      <div className="flex flex-col">
+        <button
+          className="absolute bottom-10 cursor-pointer p-4 right-10 bg-red-600 text-white font-bold rounded-full transition-all duration-300 hover:bg-red-700"
+          onClick={handleSendData}
+        >
+          {loading ? (
+            "Downloading ... "
+          ) : (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-8 h-8"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15M9 12l3 3m0 0 3-3m-3 3V2.25"
+              />
+            </svg>
+          )}
+        </button>
+        <button
+          className="absolute bottom-28 cursor-pointer p-4 right-10 bg-red-600 text-white font-bold rounded-full transition-all duration-300 hover:bg-red-700"
+          onClick={() => setPopupForCollection(true)}
+        >
+          {loading ? (
+            "Adding ... "
+          ) : (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-8 h-8"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 10.5v6m3-3H9m4.06-7.19-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"
+              />
+            </svg>
+          )}
+        </button>
+      </div>
     </>
   );
 }

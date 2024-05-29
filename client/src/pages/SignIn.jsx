@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { logo } from "../Logo";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   signInFailure,
   signInStart,
@@ -92,12 +92,6 @@ function SignIn() {
         <button className="bg-red-500 p-2 text-xl w-full">
           {loading ? "Loading..." : "SIGN IN"}
         </button>
-        <h3>
-          Dont Have An Account ?{" "}
-          <Link to={"/signup"} className="text-red-500 underline text-md">
-            SIGN UP
-          </Link>
-        </h3>
 
         {errorMessage && (
           <div className="flex w-full p-4 bg-red-400 bg-opacity-[0.2] gap-4 justify-center items-center">

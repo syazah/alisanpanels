@@ -13,7 +13,7 @@ function Droppable({ id, droppedDetails, setDroppedDetails }) {
     <div
       ref={setNodeRef}
       style={isOver ? { borderColor: "green" } : {}}
-      className="w-[50px] h-[50px] border-2 border-[#1AE0FA] rounded-lg"
+      className="w-[60px] h-[58px] border-2 border-[#1AE0FA] rounded-sm"
     >
       {droppedDetails.find((element) => element?.droppedAt === id) && (
         <div

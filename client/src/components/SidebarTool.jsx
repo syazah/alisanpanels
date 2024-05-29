@@ -103,7 +103,7 @@ function GlassSelector() {
       </div>
       <div
         className="w-full flex flex-col justify-center items-center gap-4 font-semibold  border-b-2 border-zinc-950 p-4"
-        onClick={() => dispatch(BuildPanelGlass("#fff"))}
+        onClick={() => dispatch(BuildPanelGlass("#eee"))}
       >
         <div className="w-[60px] h-[60px] border-4 border-[#ccc] rounded-full cursor-pointer bg-[#fff]"></div>
         <h3>WHITE</h3>
@@ -144,7 +144,7 @@ function FrameSelector() {
   );
 }
 function IconSelector() {
-  const [openId, setOpenId] = useState(-1); 
+  const [openId, setOpenId] = useState(-1);
   return (
     <div className="flex flex-col">
       {/* LIGHT ICONS  */}
