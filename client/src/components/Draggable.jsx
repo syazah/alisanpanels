@@ -18,6 +18,7 @@ function Draggable({ icon, id }) {
         className="relative w-[32px] cursor-pointer z-40"
         src={icon.img}
         key={nanoid()}
+        alt="loading"
       />
     </div>
   );

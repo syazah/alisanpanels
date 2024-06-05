@@ -9,6 +9,8 @@ import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import SignUp from "./pages/SignUp";
 import VerifyOtp from "./pages/VerifyOtp";
+import ViewUsers from "./components/ViewUsers";
+import UserDetails from "./components/UserDetails";
 function App() {
   const { currentUser, signUpCred } = useSelector((state) => state.user);
   return (
@@ -19,19 +21,23 @@ function App() {
           element={signUpCred?.status === 0 ? <VerifyOtp /> : <MainPage />}
         />
         <Route path="/signin" element={<SignIn />} />
-        <Route
-          path="/signup"
-          element={currentUser?.admin === true ? <SignUp /> : <NotFound />}
-        />
-        <Route path="/verify-user-email" element={<VerifyOtp />} />
         <Route element={<PrivateLink />}>
           <Route path="/profile" element={<Profile />} />
+          <Route path="/collections" element={<MyCollections />} />
           <Route
             path="/admin"
             element={currentUser?.admin === true ? <Admin /> : <PrivateLink />}
-          />
-          <Route path="/collections" element={<MyCollections />} />
+          >
+            <Route
+              path="signup"
+              element={currentUser?.admin === true ? <SignUp /> : <NotFound />}
+            />
+            <Route path="view-users" element={<ViewUsers />} />
+            <Route path="user-detail/:id" element={<UserDetails />} />
+          </Route>
+          <Route path="verify-user-email" element={<VerifyOtp />} />
         </Route>
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

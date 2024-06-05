@@ -25,7 +25,6 @@ function Profile() {
       setLoading(true);
       const formData = new FormData();
       formData.append("image", imageFile);
-      console.log(formData);
       const res = await fetch("/api/v1/profileimage", {
         method: "POST",
         body: formData,
@@ -45,7 +44,6 @@ function Profile() {
     e.preventDefault();
     try {
       setLoadingSignOut(true);
-      console.log("trying 1");
       const res = await fetch("/api/v1/signout", {
         method: "POST",
       });

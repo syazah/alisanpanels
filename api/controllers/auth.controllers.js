@@ -16,6 +16,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+import cloudinary from "cloudinary";
 //SIGN UP
 export const authSignup = async (req, res, next) => {
   const { name, email, number, password } = req.body;
@@ -55,13 +56,13 @@ export const authSignup = async (req, res, next) => {
   });
   try {
     await newUser.save();
-    sendOTP(newUser, res, next);
+    sendOTP(newUser, password, res, next);
   } catch (err) {
     next(err);
   }
 };
 //VERIFY OTP
-export const sendOTP = async ({ _id, email }, res, next) => {
+export const sendOTP = async ({ _id, email }, password, res, next) => {
   try {
     const otp = `${Math.floor(1000 + Math.random() * 9000)}`;
     const mailOptions = {
@@ -82,10 +83,10 @@ export const sendOTP = async ({ _id, email }, res, next) => {
     res.status(200).json({
       status: "PENDING",
       message: "OTP SENT",
-      data: { _id, email, status: 0 },
+      data: { _id, email, password, status: 0 },
     });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 export const verifyOTP = async (req, res, next) => {
@@ -145,6 +146,10 @@ export const authSignin = async (req, res, next) => {
     const validUser = await User.findOne({ email })
       .populate("collectionsArray")
       .select("-password");
+    const existFolder = await cloudinary.api.sub_folders("alisan");
+    if (!existFolder.folders.includes(`${existUser._id}`)) {
+      await cloudinary.api.create_folder(`alisan/${existUser._id}`);
+    }
     const token = jwt.sign({ id: existUser._id }, process.env.JWT_SECRET);
     res
       .status(200)

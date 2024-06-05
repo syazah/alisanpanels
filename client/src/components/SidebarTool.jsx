@@ -65,25 +65,27 @@ function VariantsSelector() {
   const { panelSize } = useSelector((state) => state.panel);
   const dispatch = useDispatch();
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full overflow-y-scroll">
       {/*VARIANTS*/}
       {variantData[panelSize / 2 - 1].map((object) => {
         return (
-          <div
-            key={nanoid()}
-            style={panelSize === 4 ? { padding: "10px" } : {}}
-            className="w-full flex p-4 justify-start items-center hover:bg-zinc-950 cursor-pointer border-b-2 border-zinc-950"
-            onClick={() => dispatch(BuildPanelVariant(object))}
-          >
-            <h3 className="text-md">
-              {object.switches > 0 && `${object.switches} switch `}
-              {object.bells > 0 && ` ${object.bells} bell`}
-              {object.curtains > 0 && ` ${object.curtains} curtain`}
-              {object.fans > 0 && ` ${object.fans} fan`}
-              {object.plugs > 0 && ` ${object.plugs} plug`}
-              {object.dimmers > 0 && ` ${object.dimmers} dimmer`}
-            </h3>
-          </div>
+          <>
+            <div
+              key={nanoid()}
+              style={panelSize === 4 ? { padding: "10px" } : {}}
+              className="w-full flex p-4 justify-start items-center hover:bg-zinc-950 cursor-pointer border-b-2 border-zinc-950"
+              onClick={() => dispatch(BuildPanelVariant(object))}
+            >
+              <h3 className="text-md">
+                {object.switches > 0 && `${object.switches} switch `}
+                {object.bells > 0 && ` ${object.bells} bell`}
+                {object.curtains > 0 && ` ${object.curtains} curtain`}
+                {object.fans > 0 && ` ${object.fans} fan`}
+                {object.plugs > 0 && ` ${object.plugs} plug`}
+                {object.dimmers > 0 && ` ${object.dimmers} dimmer`}
+              </h3>
+            </div>
+          </>
         );
       })}
     </div>

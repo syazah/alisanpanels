@@ -15,7 +15,9 @@ function MainPage() {
   });
 
   //DND
+  const { panelIcons } = useSelector((state) => state.panel);
   const [droppedDetails, setDroppedDetails] = useState([]);
+
   function handleDragEnd(event) {
     if (event.over) {
       const newDroppedDetail = [...droppedDetails];
@@ -27,9 +29,15 @@ function MainPage() {
       dispatch(BuildPanelIcons(newDroppedDetail));
     }
   }
+
+  useEffect(() => {
+    if (panelIcons.length === 0) {
+      setDroppedDetails([]);
+    }
+  }, [panelIcons.length]);
   return (
     <DndContext onDragEnd={handleDragEnd}>
-      <div className="flex flex-col w-full h-screen bg-zinc-700 text-gray-50">
+      <div className="flex flex-col w-full h-screen bg-zinc-700 text-gray-50 overflow-hidden">
         <Navbar />
         <div className="flex w-[100%] h-full justify-between">
           <Sidebar />

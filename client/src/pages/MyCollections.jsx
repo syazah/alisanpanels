@@ -1,10 +1,11 @@
 import { useRef, useState } from "react";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
-import HistoryPanels from "../components/HistoryPanels";
+
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 function MyCollections() {
+  const [panelImageArray, setPanelImageArray] = useState([]);
   const [loading, setLoading] = useState(false);
   const [collectionsArray, setCollectionsArray] = useState([]);
   const [panelsPopupOpen, setPanelsPopupOpen] = useState(false);
@@ -12,7 +13,42 @@ function MyCollections() {
   const [panelArray, setPanelArray] = useState([]);
   const [pdfLoading, setPdfLoading] = useState(false);
   const panelRef = useRef([]);
+  const [currentCollectionChosed, setCurrentCollectionChosed] = useState("");
 
+  //LOAD IMAGE
+  const loadImage = async (imageUrl) => {
+    let imageUrlFetched = await fetch(imageUrl);
+    let blob = await imageUrlFetched.blob();
+    let fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
+    let file = new File([blob], fileName, { type: blob.type });
+    setPanelImageArray((panelImageArray) => [
+      ...panelImageArray,
+      URL.createObjectURL(file),
+    ]);
+  };
+  //fetch panels
+  async function handleFetchCollection(id) {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/v1/panel/fetch-panels", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ _id: id }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        console.log(panelArray);
+        setPanelArray(data.message);
+        for (let i = 0; i < panelArray.length; i++) {
+          loadImage(panelArray[i].panelImage);
+        }
+      }
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      console.log(error);
+    }
+  }
   //fetch collections
   async function fetchUsers() {
     try {
@@ -33,137 +69,52 @@ function MyCollections() {
     }
   }
 
-  //fetch panels
-  async function handleFetchCollection(id) {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/v1/panel/fetch-panels", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ _id: id }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setPanelArray(data.message);
-      }
-      setLoading(false);
-    } catch (error) {
-      setLoading(false);
-      console.log(error);
-    }
-  }
-
   //DOWNLOAD PDF
   async function handleDownloadPdf() {
     try {
       setPdfLoading(true);
-      const images = await Promise.all(
-        panelRef.current.map(async (ref) => {
-          if (ref) {
-            const canvas = await html2canvas(ref);
-            return canvas.toDataURL("image/png");
-          }
-          return null;
-        })
-      );
 
       // Create a new jsPDF instance
-      const pdf = new jsPDF("p", "mm", "a4");
+      const doc = new jsPDF("p", "mm", "a4");
 
       // Add each image to the PDF
-      images.forEach((image, index) => {
-        if (image) {
-          if (index > 0) {
-            pdf.addPage();
-          }
-          if (index == 0) {
-            pdf.text(`ALISAN PANELS`, 10, 10);
-            pdf.text(
-              `PANEL ID :- ${JSON.stringify(panelArray[index]._id)}`,
-              10,
-              20
-            );
-            pdf.text(
-              `Switches :- ${JSON.stringify(
-                panelArray[index].panelVariant[0]
-              )}`,
-              10,
-              25
-            );
-            pdf.text(
-              `Bells :- ${JSON.stringify(panelArray[index].panelVariant[0])}`,
-              10,
-              30
-            );
-            pdf.text(
-              `Curtains :- ${JSON.stringify(
-                panelArray[index].panelVariant[0]
-              )}`,
-              10,
-              35
-            );
-            pdf.text(
-              `Fans :- ${JSON.stringify(panelArray[index].panelVariant[0])}`,
-              10,
-              40
-            );
-            pdf.text(
-              `Plugs :- ${JSON.stringify(panelArray[index].panelVariant[0])}`,
-              10,
-              45
-            );
-            pdf.text(
-              `Dimmers :- ${JSON.stringify(panelArray[index].panelVariant[0])}`,
-              10,
-              50
-            );
-          } else {
-            pdf.text(`Panel ${index + 1}`, 10, 10);
-            pdf.text(
-              `PANEL ID :- ${JSON.stringify(panelArray[index]._id)}`,
-              10,
-              20
-            );
-            pdf.text(
-              `Switches :- ${JSON.stringify(
-                panelArray[index].panelVariant[0]
-              )}`,
-              10,
-              25
-            );
-            pdf.text(
-              `Bells :- ${JSON.stringify(panelArray[index].panelVariant[0])}`,
-              10,
-              30
-            );
-            pdf.text(
-              `Curtains :- ${JSON.stringify(
-                panelArray[index].panelVariant[0]
-              )}`,
-              10,
-              35
-            );
-            pdf.text(
-              `Fans :- ${JSON.stringify(panelArray[index].panelVariant[0])}`,
-              10,
-              40
-            );
-            pdf.text(
-              `Plugs :- ${JSON.stringify(panelArray[index].panelVariant[0])}`,
-              10,
-              45
-            );
-            pdf.text(
-              `Dimmers :- ${JSON.stringify(panelArray[index].panelVariant[0])}`,
-              10,
-              50
-            );
-          }
-          pdf.addImage(image, "PNG", 40, 70, 120, 0); // Adjust dimensions as needed
-        }
-      });
+      for (let i = 0; i < panelArray.length; i++) {
+        const imgElement = panelRef.current[i];
+        const canvas = await html2canvas(imgElement, {
+          useCors: false,
+        });
+        const imgData = canvas.toDataURL("image/png");
+
+        const imgProps = doc.getImageProperties(imgData);
+        const pdfWidth = doc.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+        if (i !== 0) doc.addPage();
+        doc.text(`Alisan Panel ${i}`, 5, 10);
+        doc.text(
+          `Panel Glass Color :- ${
+            panelArray[i] === "#000" ? "Black" : "White"
+          }`,
+          5,
+          15
+        );
+        doc.text(`Switches Used :- ${panelArray[i].panelVariant[0]}`, 5, 20);
+        doc.text(`Bells Used :- ${panelArray[i].panelVariant[1]}`, 5, 25);
+        doc.text(`Curtains Used :- ${panelArray[i].panelVariant[2]}`, 5, 30);
+        doc.text(`Fans Used :- ${panelArray[i].panelVariant[3]}`, 5, 35);
+        doc.text(`Plugs Used :- ${panelArray[i].panelVariant[4]}`, 5, 40);
+        doc.text(`Dimmers Used :- ${panelArray[i].panelVariant[5]}`, 5, 45);
+        doc.addImage(
+          imgData,
+          "PNG",
+          40,
+          pdfHeight / 2,
+          pdfWidth / 2,
+          pdfHeight / 2
+        );
+      }
       // Save the PDF
-      pdf.save("panels.pdf");
+      doc.save("panels.pdf");
       setPdfLoading(false);
     } catch (error) {
       console.log(error);
@@ -174,7 +125,8 @@ function MyCollections() {
   useEffect(() => {
     fetchUsers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser]);
+  }, [currentUser, panelArray]);
+
   return (
     <div className="w-full h-[100vh] bg-zinc-800 p-4 flex flex-col">
       <div className="flex justify-start w-full">
@@ -182,7 +134,7 @@ function MyCollections() {
           My Collections
         </h1>
       </div>
-      {collectionsArray.length === 0 ? (
+      {!loading && collectionsArray.length === 0 ? (
         <div className="w-full h-full flex justify-center items-center flex-col">
           <h1 className="font-bold text-2xl text-red-600 border-b-2 border-red-600">
             No Collection Found
@@ -209,6 +161,7 @@ function MyCollections() {
                     key={index}
                     onClick={() => {
                       setPanelsPopupOpen(true);
+                      setCurrentCollectionChosed(collection._id);
                       handleFetchCollection(collection._id);
                     }}
                   >
@@ -267,7 +220,9 @@ function MyCollections() {
                         )}
 
                         <svg
-                          onClick={() => setPanelsPopupOpen(false)}
+                          onClick={() => {
+                            setPanelsPopupOpen(false), setPanelImageArray([]);
+                          }}
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
                           viewBox="0 0 24 24"
@@ -282,20 +237,35 @@ function MyCollections() {
                           />
                         </svg>
                       </div>
-
-                      <div className="w-full h-full grid grid-cols-4 p-4 gap-2">
-                        {panelArray.map((panel, index) => {
-                          return (
-                            <div
-                              className="grid col-span-2 "
-                              key={index}
-                              ref={(el) => (panelRef.current[index] = el)}
-                            >
-                              <HistoryPanels panel={panel} />;
-                            </div>
-                          );
-                        })}
-                      </div>
+                      {panelImageArray.length === 0 ? (
+                        <div className="w-full gap-8 flex flex-col justify-center items-center">
+                          <div className="text-2xl text-white">
+                            Want To View The Collection ?
+                          </div>
+                          <button
+                            onClick={() =>
+                              handleFetchCollection(currentCollectionChosed)
+                            }
+                            className="p-2 px-10 rounded-full bg-red-600"
+                          >
+                            Yes
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-full h-full grid grid-cols-4 p-4 gap-2">
+                          {panelImageArray.map((panel, index) => {
+                            return (
+                              <div className="grid col-span-2 " key={index}>
+                                <img
+                                  ref={(el) => (panelRef.current[index] = el)}
+                                  src={panel}
+                                  alt="loading"
+                                />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

@@ -32,6 +32,7 @@ const panelSlice = createSlice({
       };
     },
     BuildPanelVariant: (state, action) => {
+      state.panelIcons = [];
       state.panelVariant = action.payload;
     },
     BuildPanelGlass: (state, action) => {

@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import authRouter from "./routes/auth.routes.js";
 import userRouter from "./routes/user.routes.js";
 import panelRouter from "./routes/panel.routes.js";
+import adminRouter from "./routes/admin.routes.js";
 import cookieParser from "cookie-parser";
 import cloudinary from "cloudinary";
 import path from "path";
@@ -25,6 +26,7 @@ app.use(cookieParser());
 app.use("/api/v1", authRouter);
 app.use("/api/v1", userRouter);
 app.use("/api/v1", panelRouter);
+app.use("/api/v1", adminRouter);
 
 app.use(express.static(path.join(__dirname, "/client/dist")));
 app.get("*", (req, res) => {

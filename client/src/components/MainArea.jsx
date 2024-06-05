@@ -23,18 +23,19 @@ function MainArea({ droppedDetails, setDroppedDetails }) {
   const numFans = panelVariant.fans;
   const numPlugs = panelVariant.plugs;
   const numDimmers = panelVariant.dimmers;
+
   const buttonItems = [
-    { count: numBells, type: "Bells" },
-    { count: numCurtains, type: "Curtains" },
-    { count: numFans, type: "Fans" },
-    { count: numPlugs, type: "Plugs" },
-    { count: numDimmers, type: "Dimmers" },
-  ];
+    numBells > 0 && { count: numBells, type: "Bells" },
+    numCurtains > 0 && { count: numCurtains, type: "Curtains" },
+    numFans > 0 && { count: numFans, type: "Fans" },
+    numPlugs > 0 && { count: numPlugs, type: "Plugs" },
+    numDimmers > 0 && { count: numDimmers, type: "Dimmers" },
+  ].filter(Boolean);
 
   const droppablesArray = [];
   const panelData = useSelector((state) => state.panel);
   const completeData = { ...panelData, user: currentUser };
-
+  let buttonItemPresent = false;
   const [loading, setLoading] = useState(false);
   const [collectionLoading, setCollectionLoading] = useState(false);
   const [popupForCollection, setPopupForCollection] = useState(false);
@@ -42,7 +43,18 @@ function MainArea({ droppedDetails, setDroppedDetails }) {
   const [addNewCollectionPopup, setAddNewCollectionPopup] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState("");
   const [chosenExisting, setChosenExisting] = useState("");
+  let showModuleBorder = false;
   const [addToExisting, setAddToExisting] = useState(false);
+
+  if (
+    numBells > 0 ||
+    numCurtains > 0 ||
+    numPlugs > 0 ||
+    numDimmers > 0 ||
+    numFans > 0
+  ) {
+    buttonItemPresent = true;
+  }
 
   // DOWNLOAD PDF
   function downloadPdf() {
@@ -55,7 +67,6 @@ function MainArea({ droppedDetails, setDroppedDetails }) {
       const link = document.createElement("a");
       link.download = "panelImage.png";
       link.href = canvas.toDataURL();
-      console.log(link.download);
       link.click();
     });
   }
@@ -64,17 +75,33 @@ function MainArea({ droppedDetails, setDroppedDetails }) {
   async function handleSendData() {
     try {
       setLoading(true);
-      const res = await fetch("/api/v1/panel/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(completeData),
+      const input = pdfRef.current;
+      const canvas = await html2canvas(input, {
+        useCORS: true,
+        logging: true,
+        letterRendering: 1,
       });
-      const data = await res.json();
-      console.log(data);
-      if (res.ok) {
-        downloadPdf();
+      canvas.toBlob(async (blob) => {
+        const formData = new FormData();
+        formData.append("image", blob);
+        const res = await fetch("/api/v1/panel/upload-image", {
+          method: "POST",
+          body: formData,
+        });
+        const { url } = await res.json();
+        const finalData = { ...completeData, url };
+        const res2 = await fetch("/api/v1/panel/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(finalData),
+        });
+        if (res2.ok) {
+          downloadPdf();
+        }
+      });
+      setTimeout(() => {
         setLoading(false);
-      }
+      }, 2000);
     } catch (error) {
       console.log(error);
       setLoading(false);
@@ -85,39 +112,25 @@ function MainArea({ droppedDetails, setDroppedDetails }) {
   async function handleCreateNewCollection() {
     try {
       setCollectionLoading(true);
-      const res = await fetch("/api/v1/panel/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(completeData),
-      });
-      const data = await res.json();
       const collectionCompleteData = {
         userId: completeData.user._id,
         collectionName: newCollectionName.split(" ").join(""),
-        panelId: data.panelId,
       };
-      if (data.success === false) {
-        alert(data.message);
+      const newRes = await fetch("/api/v1/panel/add-collection", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(collectionCompleteData),
+      });
+      const newData = await newRes.json();
+      if (newData.success === false) {
+        alert(newData.message);
         setCollectionLoading(false);
         setNewCollectionName("");
       }
-      if (res.ok) {
-        const newRes = await fetch("/api/v1/panel/add-collection", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(collectionCompleteData),
-        });
-        const newData = await newRes.json();
-        if (newData.success === false) {
-          alert(newData.message);
-          setCollectionLoading(false);
-          setNewCollectionName("");
-        }
-        if (res.ok) {
-          setNewCollectionName("");
-          setCollectionLoading(false);
-          return setAddNewCollectionPopup(false);
-        }
+      if (newRes.ok) {
+        setNewCollectionName("");
+        setCollectionLoading(false);
+        return setAddNewCollectionPopup(false);
       }
       setCollectionLoading(false);
     } catch (error) {
@@ -151,36 +164,52 @@ function MainArea({ droppedDetails, setDroppedDetails }) {
   async function handleAddToExisting() {
     try {
       setCollectionLoading(true);
-      const res = await fetch("/api/v1/panel/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(completeData),
+      const input = pdfRef.current;
+      const canvas = await html2canvas(input, {
+        useCORS: true,
+        logging: true,
+        letterRendering: 1,
       });
-      const data = await res.json();
-      const finalData = {
-        userId: completeData.user._id,
-        chosenCollection: chosenExisting,
-        panelId: data.panelId,
-      };
-      if (data.success === false) {
-        alert(data.message);
-        setCollectionLoading(false);
-        setNewCollectionName("");
-      }
-      if (res.ok) {
-        const res = await fetch("/api/v1/panel/add-to-collection", {
+      canvas.toBlob(async (blob) => {
+        const formData = new FormData();
+        formData.append("image", blob);
+        formData.append("folder", chosenExisting);
+        const res = await fetch("/api/v1/panel/upload-image", {
+          method: "POST",
+          body: formData,
+        });
+        const { url } = await res.json();
+        const oneFinalData = { ...completeData, url };
+        const res2 = await fetch("/api/v1/panel/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(finalData),
+          body: JSON.stringify(oneFinalData),
         });
-        const data = await res.json();
-        if (res.ok) {
-          dispatch(UpdateCollectionsArray(data.message.collectionArray));
-          setCollectionLoading(false);
-          return setAddToExisting(false);
+        const data = await res2.json();
+        if (data.success === false) {
+          alert(data.message);
+          setNewCollectionName("");
         }
-      }
-      setCollectionLoading(false);
+        const finalData = {
+          userId: completeData.user._id,
+          chosenCollection: chosenExisting,
+          panelId: data.panelId,
+          url,
+        };
+        if (res2.ok) {
+          const res3 = await fetch("/api/v1/panel/add-to-collection", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(finalData),
+          });
+          const data2 = await res3.json();
+          if (res3.ok) {
+            dispatch(UpdateCollectionsArray(data2.message.collectionArray));
+            setCollectionLoading(false);
+            return setAddToExisting(false);
+          }
+        }
+      });
     } catch (error) {
       setCollectionLoading(false);
       setPopupError(error);
@@ -191,11 +220,13 @@ function MainArea({ droppedDetails, setDroppedDetails }) {
   for (let i = 0; i < numSwitches; i++) {
     droppablesArray.push(i + 1);
   }
+  if (buttonItems.length > 0 || droppablesArray.length > 0) {
+    showModuleBorder = true;
+  }
 
   return (
     <>
       <div
-        ref={pdfRef}
         style={{ backgroundImage: `url(${panelWall})` }}
         className="relative w-[75%] h-full justify-center items-center flex flex-col gap-6 bg-cover bg-no-repeat"
       >
@@ -348,42 +379,391 @@ function MainArea({ droppedDetails, setDroppedDetails }) {
         {/*PANEL*/}
         {currentOpen > -1 && (
           <div
+            ref={pdfRef}
             style={{
               width: `${
                 panelSize <= 4
                   ? 2 * 100 + (panelSize / 2) * 100
-                  : 2 * 100 + (panelSize / 2) * 100
+                  : 2 * 160 + (panelSize / 2) * 100
               }px`,
-              height: `${panelSize <= 4 ? 290 : 280}px`,
               backgroundColor: panelGlass,
+              height: `${panelSize <= 4 ? 290 : 280}px`,
               borderColor: panelFrame,
             }}
-            className="relative border-[3px] bg-zinc-950 rounded-lg  transition-all flex flex-wrap gap-4 justify-center items-center"
+            className={`panel relative border-[3px] bg-zinc-950 rounded-lg  transition-all flex justify-center items-center p-4 ${
+              !showModuleBorder ? "gap-4" : ""
+            }`}
           >
-            <div className=" h-full  flex flex-wrap justify-center items-center gap-4">
-              {droppablesArray.map((item) => {
-                return (
-                  <Droppable
-                    setDroppedDetails={setDroppedDetails}
-                    droppedDetails={droppedDetails}
-                    key={nanoid()}
-                    id={item}
-                  />
-                );
-              })}
-            </div>
+            <div className="absolute clip-triangle z-[10] top-0 left-0 bg-[rgb(255,255,255,0.5)] w-[150px] h-full"></div>
 
-            {buttonItems.map((item, index) =>
-              item.count > 0
-                ? Array.from({ length: item.count }, (_, i) => (
-                    <PanelButtons
-                      key={`${item.type}-${index}-${i}`}
-                      type={item.type}
-                    />
-                  ))
-                : null
+            {/* PANEL SIZE 2  */}
+            {panelSize === 2 && (
+              <div
+                className={`flex justify-center items-center w-[70%] h-[70%] ${
+                  !showModuleBorder ? "border-zinc-400 border-[1px]" : ""
+                } gap-4 gap-y-1 p-0 px-[1px] flex-wrap`}
+              >
+                {/* SWITCHES  */}
+                {numSwitches > 0 &&
+                  droppablesArray.map((item) => {
+                    return (
+                      <Droppable
+                        setDroppedDetails={setDroppedDetails}
+                        droppedDetails={droppedDetails}
+                        key={nanoid()}
+                        id={item}
+                      />
+                    );
+                  })}
+
+                {/* PANEL BUTTONS  */}
+                {buttonItems &&
+                  buttonItems.map((item, index) =>
+                    item.count > 0
+                      ? Array.from({ length: item.count }, (_, i) => (
+                          <PanelButtons
+                            key={`${item.type}-${index}-${i}`}
+                            type={item.type}
+                            width={"100%"}
+                          />
+                        ))
+                      : null
+                  )}
+              </div>
             )}
 
+            {/* PANEL SIZE 4  */}
+            {panelSize === 4 && (
+              <>
+                <div
+                  className={`flex justify-center items-center w-[50%] h-[70%] ${
+                    !showModuleBorder ? "border-zinc-400 border-[1px]" : ""
+                  } gap-4 p-2 pr-0 ${
+                    numSwitches >= 4 && !buttonItemPresent ? "-mx-4" : ""
+                  } flex-wrap`}
+                >
+                  {/* SWITCHES  */}
+                  {numSwitches > 0
+                    ? buttonItemPresent === false
+                      ? droppablesArray
+                          .slice(0, droppablesArray.length / 2)
+                          .map((item) => {
+                            return (
+                              <Droppable
+                                setDroppedDetails={setDroppedDetails}
+                                droppedDetails={droppedDetails}
+                                key={nanoid()}
+                                id={item}
+                              />
+                            );
+                          })
+                      : droppablesArray.map((item) => {
+                          return (
+                            <Droppable
+                              setDroppedDetails={setDroppedDetails}
+                              droppedDetails={droppedDetails}
+                              key={nanoid()}
+                              id={item}
+                            />
+                          );
+                        })
+                    : buttonItemPresent &&
+                      buttonItems.map((item, index) =>
+                        item.count > 0
+                          ? Array.from({ length: item.count / 2 }, (_, i) => (
+                              <PanelButtons
+                                key={`${item.type}-${index}-${i}`}
+                                type={item.type}
+                                width={"100%"}
+                              />
+                            ))
+                          : null
+                      )}
+                </div>
+                {/* PANEL BUTTONS  */}
+                <div
+                  className={`flex justify-center items-center w-[50%] h-[70%] ${
+                    !showModuleBorder ? "border-zinc-400 border-[1px]" : ""
+                  } gap-4 p-2 ${
+                    numSwitches >= 4 && !buttonItemPresent ? "-mx-5" : ""
+                  } flex-wrap`}
+                >
+                  {buttonItemPresent
+                    ? numSwitches > 0
+                      ? buttonItems.map((item, index) =>
+                          item.count > 0
+                            ? Array.from({ length: item.count }, (_, i) => (
+                                <PanelButtons
+                                  key={`${item.type}-${index}-${i}`}
+                                  type={item.type}
+                                  width={"100%"}
+                                />
+                              ))
+                            : null
+                        )
+                      : buttonItems
+                          .slice(buttonItems.length / 2, buttonItems.length)
+                          .map((item, index) =>
+                            item.count > item.count / 2
+                              ? Array.from(
+                                  { length: item.count / 2 },
+                                  (_, i) => (
+                                    <PanelButtons
+                                      key={`${item.type}-${index}-${i}`}
+                                      type={item.type}
+                                      width={"100%"}
+                                    />
+                                  )
+                                )
+                              : null
+                          )
+                    : numSwitches > 0 &&
+                      droppablesArray
+                        .slice(
+                          droppablesArray.length / 2,
+                          droppablesArray.length
+                        )
+                        .map((item) => {
+                          return (
+                            <Droppable
+                              setDroppedDetails={setDroppedDetails}
+                              droppedDetails={droppedDetails}
+                              key={nanoid()}
+                              id={item}
+                            />
+                          );
+                        })}
+                </div>
+              </>
+            )}
+
+            {/* PANEL SIZE 6  */}
+            {panelSize === 6 && (
+              <>
+                <div
+                  className={`flex justify-center items-center w-[33%] h-[80%] ${
+                    !showModuleBorder ? "border-zinc-400 border-[1px]" : ""
+                  } gap-${numSwitches >= 6 ? "2" : "4"} p-2 flex-wrap pr-0`}
+                >
+                  {/* SWITCHES  */}
+                  {numSwitches > 0 &&
+                    droppablesArray.slice(0, 6).map((item) => {
+                      return (
+                        <Droppable
+                          setDroppedDetails={setDroppedDetails}
+                          droppedDetails={droppedDetails}
+                          key={nanoid()}
+                          id={item}
+                        />
+                      );
+                    })}
+                </div>
+                {/* PANEL BUTTONS  */}
+                <div
+                  className={`flex justify-center items-center ${
+                    !showModuleBorder
+                      ? "w-[33%]"
+                      : buttonItems.length > 1
+                      ? "w-[33%]"
+                      : "w-[0%]"
+                  } h-[80%] ${
+                    !showModuleBorder ? "border-zinc-400 border-[1px]" : ""
+                  } gap-4 p-2 flex-wrap`}
+                >
+                  {/* SWITCHES  */}
+                  {buttonItems.length > 1 ? (
+                    buttonItems
+                      .slice(0, 1)
+                      .map((item, index) =>
+                        item.count > 0
+                          ? Array.from({ length: item.count }, (_, i) => (
+                              <PanelButtons
+                                key={`${item.type}-${index}-${i}`}
+                                type={item.type}
+                                width={"100%"}
+                              />
+                            ))
+                          : null
+                      )
+                  ) : (
+                    //buttonItems.map((item, index) =>
+                    //     item.count > 1
+                    //       ? Array.from({ length: 1 }, (_, i) => (
+                    //           <PanelButtons
+                    //             key={`${item.type}-${index}-${i}`}
+                    //             type={item.type}
+                    //             width={"100%"}
+                    //           />
+                    //         ))
+                    //       : null
+                    //   )
+                    <></>
+                  )}
+                </div>
+
+                {/* NEXT  */}
+                <div
+                  className={`flex justify-center items-center ${
+                    !showModuleBorder
+                      ? "w-[33%]"
+                      : buttonItems.length > 1
+                      ? "w-[33%]"
+                      : "w-[66%] justify-start items-start"
+                  } h-[80%] ${
+                    !showModuleBorder ? "border-zinc-400 border-[1px]" : ""
+                  } gap-4 p-2 flex-wrap`}
+                >
+                  {/* SWITCHES  */}
+                  {buttonItems.length > 1
+                    ? buttonItems
+                        .slice(1, buttonItems.length)
+                        .map((item, index) =>
+                          item.count > 0
+                            ? Array.from({ length: 1 }, (_, i) => (
+                                <PanelButtons
+                                  count={item.count}
+                                  key={`${item.type}-${index}-${i}`}
+                                  type={item.type}
+                                  width={"100%"}
+                                />
+                              ))
+                            : null
+                        )
+                    : buttonItems.map((item, index) =>
+                        item.count <= 1 ? (
+                          Array.from({ length: 1 }, (_, i) => (
+                            <div
+                              key={`${item.type}-${index}-${i}`}
+                              className="w-1/2 h-full"
+                            >
+                              <PanelButtons type={item.type} width={"100%"} />
+                            </div>
+                          ))
+                        ) : (
+                          <div key={nanoid()} className="w-[100%] h-full flex">
+                            {Array.from({ length: item.count }, (_, i) => (
+                              <PanelButtons
+                                key={`${item.type}-${index}-${i}`}
+                                type={item.type}
+                                width={"100%"}
+                              />
+                            ))}
+                          </div>
+                        )
+                      )}
+                </div>
+              </>
+            )}
+
+            {/* PANEL 8 MODULES  */}
+            {panelSize === 8 && (
+              <>
+                <div
+                  className={`flex justify-center items-center w-[25%] h-[70%] ${
+                    !showModuleBorder ? "border-zinc-400 border-[1px]" : ""
+                  } gap-4 gap-y-1 p-0 px-[1px] flex-wrap`}
+                >
+                  {/* SWITCHES  */}
+                  {droppablesArray.length > 0 &&
+                    droppablesArray.slice(0, 4).map((item) => {
+                      return (
+                        <Droppable
+                          setDroppedDetails={setDroppedDetails}
+                          droppedDetails={droppedDetails}
+                          key={nanoid()}
+                          id={item}
+                        />
+                      );
+                    })}
+
+                  {/* PANEL BUTTONS  */}
+                  {buttonItems &&
+                    buttonItems.map((item, index) =>
+                      item.count > 0
+                        ? Array.from({ length: item.count }, (_, i) => (
+                            <PanelButtons
+                              key={`${item.type}-${index}-${i}`}
+                              type={item.type}
+                              width={"100%"}
+                            />
+                          ))
+                        : null
+                    )}
+                </div>
+                <div
+                  className={`flex justify-center items-center w-[25%] h-[70%] ${
+                    !showModuleBorder ? "border-zinc-400 border-[1px]" : ""
+                  } gap-4 gap-y-1 p-0 px-[1px] flex-wrap ${
+                    numSwitches >= 4 && !buttonItemPresent ? "-mx-8" : ""
+                  }`}
+                >
+                  {/* SWITCHES  */}
+                  {droppablesArray.length > 0 &&
+                    droppablesArray.slice(4, 8).map((item) => {
+                      return (
+                        <Droppable
+                          setDroppedDetails={setDroppedDetails}
+                          droppedDetails={droppedDetails}
+                          key={nanoid()}
+                          id={item}
+                        />
+                      );
+                    })}
+
+                  {/* PANEL BUTTONS  */}
+                  {buttonItems &&
+                    buttonItems.map((item, index) =>
+                      item.count > 0
+                        ? Array.from({ length: item.count }, (_, i) => (
+                            <PanelButtons
+                              key={`${item.type}-${index}-${i}`}
+                              type={item.type}
+                              width={"100%"}
+                            />
+                          ))
+                        : null
+                    )}
+                </div>
+                <div
+                  className={`flex ${
+                    droppablesArray.slice(8, 12).length <= 2
+                      ? "flex-col gap-8"
+                      : "gap-4 gap-y-1"
+                  } justify-center items-center w-[25%] h-[70%] ${
+                    !showModuleBorder ? "border-zinc-400 border-[1px]" : ""
+                  }   p-0 px-[1px] flex-wrap ${
+                    numSwitches >= 4 && !buttonItemPresent ? "-ml-8" : ""
+                  }`}
+                >
+                  {/* SWITCHES  */}
+                  {droppablesArray.length > 0 &&
+                    droppablesArray.slice(8, 12).map((item) => {
+                      return (
+                        <Droppable
+                          setDroppedDetails={setDroppedDetails}
+                          droppedDetails={droppedDetails}
+                          key={nanoid()}
+                          id={item}
+                        />
+                      );
+                    })}
+
+                  {/* PANEL BUTTONS  */}
+                  {buttonItems &&
+                    buttonItems.map((item, index) =>
+                      item.count > 0
+                        ? Array.from({ length: item.count }, (_, i) => (
+                            <PanelButtons
+                              key={`${item.type}-${index}-${i}`}
+                              type={item.type}
+                              width={"100%"}
+                            />
+                          ))
+                        : null
+                    )}
+                </div>
+              </>
+            )}
             <img className="absolute bottom-2 right-2 w-14 " src={logo} />
           </div>
         )}
@@ -391,54 +771,56 @@ function MainArea({ droppedDetails, setDroppedDetails }) {
 
       {/* DOWNLOAD PANEL  */}
 
-      <div className="flex flex-col">
-        <button
-          className="absolute bottom-10 cursor-pointer p-4 right-10 bg-red-600 text-white font-bold rounded-full transition-all duration-300 hover:bg-red-700"
-          onClick={handleSendData}
-        >
-          {loading ? (
-            "Downloading ... "
-          ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-8 h-8"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15M9 12l3 3m0 0 3-3m-3 3V2.25"
-              />
-            </svg>
-          )}
-        </button>
-        <button
-          className="absolute bottom-28 cursor-pointer p-4 right-10 bg-red-600 text-white font-bold rounded-full transition-all duration-300 hover:bg-red-700"
-          onClick={() => setPopupForCollection(true)}
-        >
-          {loading ? (
-            "Adding ... "
-          ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-8 h-8"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 10.5v6m3-3H9m4.06-7.19-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"
-              />
-            </svg>
-          )}
-        </button>
-      </div>
+      {currentUser !== null && (
+        <div className="flex flex-col">
+          <button
+            className="absolute bottom-10 cursor-pointer p-4 right-10 bg-red-600 text-white font-bold rounded-full transition-all duration-300 hover:bg-red-700"
+            onClick={handleSendData}
+          >
+            {loading ? (
+              "Downloading ... "
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-8 h-8"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15M9 12l3 3m0 0 3-3m-3 3V2.25"
+                />
+              </svg>
+            )}
+          </button>
+          <button
+            className="absolute bottom-28 cursor-pointer p-4 right-10 bg-red-600 text-white font-bold rounded-full transition-all duration-300 hover:bg-red-700"
+            onClick={() => setPopupForCollection(true)}
+          >
+            {loading ? (
+              "Adding ... "
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-8 h-8"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 10.5v6m3-3H9m4.06-7.19-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"
+                />
+              </svg>
+            )}
+          </button>
+        </div>
+      )}
     </>
   );
 }

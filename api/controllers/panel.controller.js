@@ -2,6 +2,11 @@ import { Collection } from "../models/collection.models.js";
 import { PanelData } from "../models/panel.models.js";
 import { User } from "../models/user.models.js";
 import { errorHandler } from "../utils/errorHandler.utils.js";
+import { getDataUri } from "../utils/features.utils.js";
+import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
+import cloudinary from "cloudinary";
+dotenv.config();
 
 // CREATE PANEL
 export const panelController = async (req, res, next) => {
@@ -24,6 +29,7 @@ export const panelController = async (req, res, next) => {
       panelFrame: bodyData.panelFrame,
       panelWall: bodyData.panelWall,
       panelIcons: bodyData.panelIcons,
+      panelImage: bodyData.url,
     });
     await panelModel.save();
     res.status(200).json({ message: "Success", panelId: panelModel._id });
@@ -35,20 +41,19 @@ export const panelController = async (req, res, next) => {
 // CREATE COLLECTION
 export const addNewCollectionController = async (req, res, next) => {
   try {
-    const { userId, collectionName, panelId } = req.body;
+    const { userId, collectionName } = req.body;
     const name = userId + "/" + collectionName;
     const collectionDocument = new Collection({
       name,
       author: userId,
     });
-    collectionDocument.collectionArray.push(panelId);
     const createdCollection = await collectionDocument.save();
-    const currentUser = await User.findOneAndUpdate(
+    await cloudinary.api.create_folder(`alisan/${userId}/${collectionName}`);
+    await User.findOneAndUpdate(
       { _id: userId },
       { $push: { collectionsArray: createdCollection._id } },
       { new: true }
     );
-    console.log(currentUser);
     res.status(200).json({ success: true, message: "CREATED" });
   } catch (error) {
     next(error);
@@ -99,5 +104,26 @@ export const fetchPanelsController = async (req, res, next) => {
     res.status(200).json({ success: true, message: validUser.collectionArray });
   } catch (error) {
     next(error);
+  }
+};
+
+//UPLOAD IMAGE
+export const uploadPanelImage = async (req, res, next) => {
+  try {
+    const { access_token } = req.cookies;
+    const { folder } = req.body;
+    const { id } = await jwt.verify(access_token, process.env.JWT_SECRET);
+    const file = getDataUri(req.file);
+    let folderPath = `alisan/${id}`;
+    if (folder) {
+      folderPath = `alisan/${id}/${folder}`;
+    }
+    const url = await cloudinary.v2.uploader.upload(file.content, {
+      folder: folderPath,
+      use_filename: true,
+    });
+    res.status(200).json({ success: true, url: url.url });
+  } catch (error) {
+    console.log(error);
   }
 };

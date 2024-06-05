@@ -97,11 +97,14 @@ const sideButtons = [
   },
 ];
 function Sidebar() {
+  const { currentUser } = useSelector((state) => state.user);
+
   return (
     <div className="w-[10%] bg-zinc-800 h-full flex flex-col">
-      {sideButtons.map((btn, index) => {
-        return <SidebarButton sideBtn={btn} key={index} />;
-      })}
+      {currentUser !== null &&
+        sideButtons.map((btn, index) => {
+          return <SidebarButton sideBtn={btn} key={index} />;
+        })}
     </div>
   );
 }

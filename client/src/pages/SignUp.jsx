@@ -8,6 +8,7 @@ function SignUp() {
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
+
   const navigate = useNavigate();
   //SETTING TITLE
   useEffect(() => {
@@ -45,8 +46,12 @@ function SignUp() {
       console.log(err);
     }
   }
+
+  //SEND EMAIL
+
   return (
-    <div className="w-full h-screen bg-zinc-700 flex">
+    <div className="w-full h-screen relative bg-zinc-700 flex">
+      {/* VERIFY OTP  */}
       <div className="w-[50%] p-10 gap-8 flex flex-col justify-center items-center">
         <img className="w-52" src={logo} />
         <h3 className="text-gray-50 text-center">

@@ -31,6 +31,9 @@ const PanelSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    panelImage: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
