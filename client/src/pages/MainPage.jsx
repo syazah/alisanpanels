@@ -31,10 +31,10 @@ function MainPage() {
   }
 
   useEffect(() => {
-    if (panelIcons.length === 0) {
+    if (panelIcons.length === 0 && droppedDetails.length !== 0) {
       setDroppedDetails([]);
     }
-  }, [panelIcons.length]);
+  }, [panelIcons.length, droppedDetails.length]);
   return (
     <DndContext onDragEnd={handleDragEnd}>
       <div className="flex flex-col w-full h-screen bg-zinc-700 text-gray-50 overflow-hidden">
