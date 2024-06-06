@@ -13,7 +13,6 @@ function SignIn() {
   const { loading, error: errorMessage } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { signUpCred } = useSelector((state) => state.user);
   useEffect(() => {
     document.title = "SignIn | Panels";
   });
@@ -40,9 +39,6 @@ function SignIn() {
       }
       if (res.ok) {
         dispatch(signInSuccess(data));
-        if (signUpCred.status === 0) {
-          return navigate("/verify-user-email");
-        }
         return navigate("/");
       }
     } catch (err) {

@@ -12,14 +12,11 @@ import VerifyOtp from "./pages/VerifyOtp";
 import ViewUsers from "./components/ViewUsers";
 import UserDetails from "./components/UserDetails";
 function App() {
-  const { currentUser, signUpCred } = useSelector((state) => state.user);
+  const { currentUser } = useSelector((state) => state.user);
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/"
-          element={signUpCred?.status === 0 ? <VerifyOtp /> : <MainPage />}
-        />
+        <Route path="/" element={<MainPage />} />
         <Route path="/signin" element={<SignIn />} />
         <Route element={<PrivateLink />}>
           <Route path="/profile" element={<Profile />} />
