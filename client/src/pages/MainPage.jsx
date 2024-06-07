@@ -32,7 +32,7 @@ function MainPage() {
 
   useEffect(() => {
     if (panelIcons.length === 0 && droppedDetails.length !== 0) {
-      setDroppedDetails([]);
+      setDroppedDetails(() => []);
     }
   }, [panelIcons.length, droppedDetails.length]);
   return (
