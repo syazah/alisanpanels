@@ -1,5 +1,4 @@
 import { useDroppable } from "@dnd-kit/core";
-import { nanoid } from "@reduxjs/toolkit";
 import { useDispatch } from "react-redux";
 import { BuildPanelIcons } from "../redux/slice/panel.slice";
 
@@ -16,10 +15,7 @@ function Droppable({ id, droppedDetails, setDroppedDetails }) {
       className="w-[30%] h-[30%] border-2 border-[#1AE0FA] rounded-sm"
     >
       {droppedDetails.find((element) => element?.droppedAt === id) && (
-        <div
-          key={nanoid()}
-          className="relative flex justify-center items-center"
-        >
+        <div key={id} className="relative flex justify-center items-center">
           {/* CODE FOR DELETE BUTTON */}
           <div
             onClick={() => {

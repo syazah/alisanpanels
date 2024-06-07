@@ -1,8 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 
-import { nanoid } from "@reduxjs/toolkit";
-
 function Draggable({ icon, id }) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: id,
