@@ -1,0 +1,332 @@
+            {/* PANEL SIZE 4  */}
+            {panelSize === 4 && (
+              <>
+                <div
+                  className={`flex justify-center items-center w-[50%] h-[70%] ${
+                    !showModuleBorder ? "border-zinc-400 border-[1px]" : ""
+                  } gap-4 p-2 pr-0 ${
+                    numSwitches >= 4 && !buttonItemPresent ? "-mx-4" : ""
+                  } flex-wrap`}
+                >
+                  {/* SWITCHES  */}
+                  {numSwitches > 0
+                    ? buttonItemPresent === false
+                      ? droppablesArray
+                          .slice(0, droppablesArray.length / 2)
+                          .map((item) => {
+                            return (
+                              <Droppable
+                                setDroppedDetails={setDroppedDetails}
+                                droppedDetails={droppedDetails}
+                                key={nanoid()}
+                                id={item}
+                              />
+                            );
+                          })
+                      : droppablesArray.map((item) => {
+                          return (
+                            <Droppable
+                              setDroppedDetails={setDroppedDetails}
+                              droppedDetails={droppedDetails}
+                              key={nanoid()}
+                              id={item}
+                            />
+                          );
+                        })
+                    : buttonItemPresent &&
+                      buttonItems.map((item, index) =>
+                        item.count > 0
+                          ? Array.from({ length: item.count / 2 }, (_, i) => (
+                              <PanelButtons
+                                key={`${item.type}-${index}-${i}`}
+                                type={item.type}
+                                width={"100%"}
+                              />
+                            ))
+                          : null
+                      )}
+                </div>
+                {/* PANEL BUTTONS  */}
+                <div
+                  className={`flex justify-center items-center w-[50%] h-[70%] ${
+                    !showModuleBorder ? "border-zinc-400 border-[1px]" : ""
+                  } gap-4 p-2 ${
+                    numSwitches >= 4 && !buttonItemPresent ? "-mx-5" : ""
+                  } flex-wrap`}
+                >
+                  {buttonItemPresent
+                    ? numSwitches > 0
+                      ? buttonItems.map((item, index) =>
+                          item.count > 0
+                            ? Array.from({ length: item.count }, (_, i) => (
+                                <PanelButtons
+                                  key={`${item.type}-${index}-${i}`}
+                                  type={item.type}
+                                  width={"100%"}
+                                />
+                              ))
+                            : null
+                        )
+                      : buttonItems
+                          .slice(buttonItems.length / 2, buttonItems.length)
+                          .map((item, index) =>
+                            item.count > item.count / 2
+                              ? Array.from(
+                                  { length: item.count / 2 },
+                                  (_, i) => (
+                                    <PanelButtons
+                                      key={`${item.type}-${index}-${i}`}
+                                      type={item.type}
+                                      width={"100%"}
+                                    />
+                                  )
+                                )
+                              : null
+                          )
+                    : numSwitches > 0 &&
+                      droppablesArray
+                        .slice(
+                          droppablesArray.length / 2,
+                          droppablesArray.length
+                        )
+                        .map((item) => {
+                          return (
+                            <Droppable
+                              setDroppedDetails={setDroppedDetails}
+                              droppedDetails={droppedDetails}
+                              key={nanoid()}
+                              id={item}
+                            />
+                          );
+                        })}
+                </div>
+              </>
+            )}
+
+            {/* PANEL SIZE 6  */}
+            {panelSize === 6 && (
+              <>
+                <div
+                  className={`flex justify-center items-center w-[33%] h-[80%] ${
+                    !showModuleBorder ? "border-zinc-400 border-[1px]" : ""
+                  } gap-${numSwitches >= 6 ? "2" : "4"} p-2 flex-wrap pr-0`}
+                >
+                  {/* SWITCHES  */}
+                  {numSwitches > 0 &&
+                    droppablesArray.slice(0, 6).map((item) => {
+                      return (
+                        <Droppable
+                          setDroppedDetails={setDroppedDetails}
+                          droppedDetails={droppedDetails}
+                          key={nanoid()}
+                          id={item}
+                        />
+                      );
+                    })}
+                </div>
+                {/* PANEL BUTTONS  */}
+                <div
+                  className={`flex justify-center items-center ${
+                    !showModuleBorder
+                      ? "w-[33%]"
+                      : buttonItems.length > 1
+                      ? "w-[33%]"
+                      : "w-[0%]"
+                  } h-[80%] ${
+                    !showModuleBorder ? "border-zinc-400 border-[1px]" : ""
+                  } gap-4 p-2 flex-wrap`}
+                >
+                  {/* SWITCHES  */}
+                  {buttonItems.length > 1 ? (
+                    buttonItems
+                      .slice(0, 1)
+                      .map((item, index) =>
+                        item.count > 0
+                          ? Array.from({ length: item.count }, (_, i) => (
+                              <PanelButtons
+                                key={`${item.type}-${index}-${i}`}
+                                type={item.type}
+                                width={"100%"}
+                              />
+                            ))
+                          : null
+                      )
+                  ) : (
+                    //buttonItems.map((item, index) =>
+                    //     item.count > 1
+                    //       ? Array.from({ length: 1 }, (_, i) => (
+                    //           <PanelButtons
+                    //             key={`${item.type}-${index}-${i}`}
+                    //             type={item.type}
+                    //             width={"100%"}
+                    //           />
+                    //         ))
+                    //       : null
+                    //   )
+                    <></>
+                  )}
+                </div>
+
+                {/* NEXT  */}
+                <div
+                  className={`flex justify-center items-center ${
+                    !showModuleBorder
+                      ? "w-[33%]"
+                      : buttonItems.length > 1
+                      ? "w-[33%]"
+                      : "w-[66%] justify-start items-start"
+                  } h-[80%] ${
+                    !showModuleBorder ? "border-zinc-400 border-[1px]" : ""
+                  } gap-4 p-2 flex-wrap`}
+                >
+                  {/* SWITCHES  */}
+                  {buttonItems.length > 1
+                    ? buttonItems
+                        .slice(1, buttonItems.length)
+                        .map((item, index) =>
+                          item.count > 0
+                            ? Array.from({ length: 1 }, (_, i) => (
+                                <PanelButtons
+                                  count={item.count}
+                                  key={`${item.type}-${index}-${i}`}
+                                  type={item.type}
+                                  width={"100%"}
+                                />
+                              ))
+                            : null
+                        )
+                    : buttonItems.map((item, index) =>
+                        item.count <= 1 ? (
+                          Array.from({ length: 1 }, (_, i) => (
+                            <div
+                              key={`${item.type}-${index}-${i}`}
+                              className="w-1/2 h-full"
+                            >
+                              <PanelButtons type={item.type} width={"100%"} />
+                            </div>
+                          ))
+                        ) : (
+                          <div key={nanoid()} className="w-[100%] h-full flex">
+                            {Array.from({ length: item.count }, (_, i) => (
+                              <PanelButtons
+                                key={`${item.type}-${index}-${i}`}
+                                type={item.type}
+                                width={"100%"}
+                              />
+                            ))}
+                          </div>
+                        )
+                      )}
+                </div>
+              </>
+            )}
+
+            {/* PANEL 8 MODULES  */}
+            {panelSize === 8 && (
+              <>
+                <div
+                  className={`flex justify-center items-center w-[25%] h-[70%] ${
+                    !showModuleBorder ? "border-zinc-400 border-[1px]" : ""
+                  } gap-4 gap-y-1 p-0 px-[1px] flex-wrap`}
+                >
+                  {/* SWITCHES  */}
+                  {droppablesArray.length > 0 &&
+                    droppablesArray.slice(0, 4).map((item) => {
+                      return (
+                        <Droppable
+                          setDroppedDetails={setDroppedDetails}
+                          droppedDetails={droppedDetails}
+                          key={nanoid()}
+                          id={item}
+                        />
+                      );
+                    })}
+
+                  {/* PANEL BUTTONS  */}
+                  {buttonItems &&
+                    buttonItems.map((item, index) =>
+                      item.count > 0
+                        ? Array.from({ length: item.count }, (_, i) => (
+                            <PanelButtons
+                              key={`${item.type}-${index}-${i}`}
+                              type={item.type}
+                              width={"100%"}
+                            />
+                          ))
+                        : null
+                    )}
+                </div>
+                <div
+                  className={`flex justify-center items-center w-[25%] h-[70%] ${
+                    !showModuleBorder ? "border-zinc-400 border-[1px]" : ""
+                  } gap-4 gap-y-1 p-0 px-[1px] flex-wrap ${
+                    numSwitches >= 4 && !buttonItemPresent ? "-mx-8" : ""
+                  }`}
+                >
+                  {/* SWITCHES  */}
+                  {droppablesArray.length > 0 &&
+                    droppablesArray.slice(4, 8).map((item) => {
+                      return (
+                        <Droppable
+                          setDroppedDetails={setDroppedDetails}
+                          droppedDetails={droppedDetails}
+                          key={nanoid()}
+                          id={item}
+                        />
+                      );
+                    })}
+
+                  {/* PANEL BUTTONS  */}
+                  {buttonItems &&
+                    buttonItems.map((item, index) =>
+                      item.count > 0
+                        ? Array.from({ length: item.count }, (_, i) => (
+                            <PanelButtons
+                              key={`${item.type}-${index}-${i}`}
+                              type={item.type}
+                              width={"100%"}
+                            />
+                          ))
+                        : null
+                    )}
+                </div>
+                <div
+                  className={`flex ${
+                    droppablesArray.slice(8, 12).length <= 2
+                      ? "flex-col gap-8"
+                      : "gap-4 gap-y-1"
+                  } justify-center items-center w-[25%] h-[70%] ${
+                    !showModuleBorder ? "border-zinc-400 border-[1px]" : ""
+                  }   p-0 px-[1px] flex-wrap ${
+                    numSwitches >= 4 && !buttonItemPresent ? "-ml-8" : ""
+                  }`}
+                >
+                  {/* SWITCHES  */}
+                  {droppablesArray.length > 0 &&
+                    droppablesArray.slice(8, 12).map((item) => {
+                      return (
+                        <Droppable
+                          setDroppedDetails={setDroppedDetails}
+                          droppedDetails={droppedDetails}
+                          key={nanoid()}
+                          id={item}
+                        />
+                      );
+                    })}
+
+                  {/* PANEL BUTTONS  */}
+                  {buttonItems &&
+                    buttonItems.map((item, index) =>
+                      item.count > 0
+                        ? Array.from({ length: item.count }, (_, i) => (
+                            <PanelButtons
+                              key={`${item.type}-${index}-${i}`}
+                              type={item.type}
+                              width={"100%"}
+                            />
+                          ))
+                        : null
+                    )}
+                </div>
+              </>
+            )}

@@ -12,7 +12,7 @@ function MainPage() {
   const dispatch = useDispatch();
   useEffect(() => {
     document.title = "Panels";
-  });
+  }, []);
 
   //DND
   const { panelIcons } = useSelector((state) => state.panel);
